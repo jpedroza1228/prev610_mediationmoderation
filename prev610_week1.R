@@ -5,7 +5,7 @@ library(inspectdf)
 getwd()
 theme_set(theme_minimal())
 
-week1 <- read_csv('C:/Users/cpppe/OneDrive/Desktop/github_shared_folders/prev610_mediationmoderation/data/ftc_week1.csv') %>% 
+week1 <- read_csv('https://raw.githubusercontent.com/jpedroza1228/prev610_mediationmoderation/main/data/ftc_week1.csv') %>% 
   janitor::clean_names()
 
 names(week1)
