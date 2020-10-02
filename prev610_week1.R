@@ -1,6 +1,11 @@
+install.packages('tidyverse')
+install.packages('psych')
+install.packages('janitor')
+# install.packages('inspectdf')
+
 library(tidyverse)
 library(psych)
-library(inspectdf)
+# library(inspectdf)
 
 getwd()
 theme_set(theme_minimal())
@@ -57,7 +62,7 @@ summary(cmod)
 summary(amod)
 summary(cprmod)
 
-
+install.packages('stargazer')
 
 library(stargazer)
 
