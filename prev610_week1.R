@@ -1,3 +1,7 @@
+# install.packages('tidyverse')
+# install.packages('psych')
+# install.packages('inspectdf')
+
 library(tidyverse)
 library(psych)
 library(inspectdf)
@@ -17,7 +21,7 @@ week1 %>%
 
 week1 %>% 
   ggplot(aes(harsh3, pos3)) +
-  geom_point()
+  geom_point(color = 'dodgerblue')
 
 ## plot a histogram of the continuous variables
 week1 %>% 
@@ -45,6 +49,12 @@ week1 %>%
 
 cmod <- lm(pos3 ~ itt, data = week1)
 
+res_cmod <- broom::augment(cmod)
+
+ggplot(res_cmod, aes(.fitted, .resid)) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE)
+
 ####### Step 2 Estimate "a" path Effect of ITT to Mediator Father Knowledge of Intervention T2
 
 amod <- lm(ftcknow2 ~ itt, data = week1) 
@@ -58,6 +68,7 @@ summary(amod)
 summary(cprmod)
 
 
+# install.packages('stargazer')
 
 library(stargazer)
 

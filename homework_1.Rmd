@@ -1,0 +1,113 @@
+---
+title: "PREV 610 Homework 1"
+author: "JP"
+date: "10/10/2020"
+output: 
+  html_document:
+    theme: paper
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Homework 1
+
+## Hypotheses (Task 1)
+
+1. H1: Those in the fathering through change group will have lower reported harsh fathering behaviors at time 3.
+
+2. H2: Fathers' knowledge test scores will mediate the association between intent to treat and harsh fathering behaviors, where the fathering through change group will have higher knowledge test scores which will lead to lower reported harsh fathering behaviors at time 3.
+
+```{r data loading, echo = FALSE}
+library(tidyverse)
+library(psych)
+
+theme_set(theme_minimal())
+
+week1 <- read_csv('https://raw.githubusercontent.com/jpedroza1228/prev610_mediationmoderation/main/data/ftc_week1.csv') %>% 
+  janitor::clean_names()
+```
+
+## Descriptives
+
+```{r descriptives, echo = TRUE}
+hist_fun <- function(x){
+  week1 %>% 
+    ggplot(aes({{x}})) +
+    geom_histogram(bins = 15, color = 'white', fill = 'dodgerblue')
+}
+
+hist_fun(itt)
+hist_fun(ftcknow2)
+hist_fun(harsh3)
+
+scat_fun <- function(x, y){
+  week1 %>% 
+    ggplot(aes({{x}}, {{y}})) +
+    geom_point(alpha = .3, color = 'gray70') +
+    geom_smooth(method = 'lm', se = FALSE)
+}
+
+scat_fun(itt, ftcknow2)
+scat_fun(itt, harsh3)
+scat_fun(ftcknow2, harsh3)
+```
+
+## Estimate "c" path model for Direct Effect of ITT on Parenting Time3
+
+```{r direct effect, echo = TRUE}
+cmod <- lm(harsh3 ~ itt, data = week1)
+summary(cmod)
+lm.beta::lm.beta(cmod)
+
+# install.packages(c('gt', 'gtsummary'))
+library(gt)
+library(gtsummary)
+# install.packages('sjPlot')
+
+```
+
+## Estimate "a" path Effect of ITT to Mediator 
+
+```{r a path, echo = TRUE}
+amod <- lm(ftcknow2 ~ itt, data = week1)
+summary(amod)
+lm.beta::lm.beta(amod)
+
+amod_table <- tbl_regression(amod)
+
+amod_table
+```
+
+## Estimate "c'" or "C prime", and the "b" path (CPr)
+
+```{r c prime path, echo = TRUE}
+cprmod <- lm(harsh3 ~ itt + ftcknow2, data = week1)
+summary(cprmod)
+cprmod_z <- lm.beta::lm.beta(cprmod)
+
+round(cprmod_z$coefficients, digits = 2)
+
+library(sjPlot)
+tab_model(cprmod)
+```
+
+# Stargazer code
+
+```{r}
+stargazer::stargazer(cmod, amod, cprmod, type = 'text', title = 'JP\'s Homework 1: Baron and Kenny Method')
+
+# stargazer::stargazer(cmod, amod, cprmod, type = 'text', title = 'JP\'s Homework 1: Baron and Kenny Method', out = 'hw1.htm')
+```
+
+## Psych Mediation Code
+
+```{r}
+med_mod <- mediate(harsh3 ~ itt + ftcknow2, data = week1, std = TRUE, plot = TRUE)
+summary(med_mod)
+
+
+mediate.diagram(med_mod, digits = 2, cex = 2, main = 'JP\'s Homework 1 Mediation Model')
+```
+
