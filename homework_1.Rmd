@@ -54,9 +54,9 @@ scat_fun(itt, harsh3)
 scat_fun(ftcknow2, harsh3)
 ```
 
-## Annotated code to run analyses using lm()
+## Annotated code to run analyses using lm() (Task 2)
 
-## Estimate "c" path model for Direct Effect of ITT on Parenting Time3
+### Estimate "c" path model for Direct Effect of ITT on Parenting Time3
 
 ```{r direct effect, echo = TRUE}
 cmod <- lm(harsh3 ~ itt, data = week1)
@@ -70,7 +70,7 @@ library(gtsummary)
 
 ```
 
-## Estimate "a" path Effect of ITT to Mediator 
+### Estimate "a" path Effect of ITT to Mediator 
 
 ```{r a path, echo = TRUE}
 amod <- lm(ftcknow2 ~ itt, data = week1)
@@ -82,7 +82,7 @@ lm.beta::lm.beta(amod)
 # amod_table
 ```
 
-## Estimate "c'" or "C prime", and the "b" path (CPr)
+### Estimate "c'" or "C prime", and the "b" path (CPr)
 
 ```{r c prime path, echo = TRUE}
 cprmod <- lm(harsh3 ~ itt + ftcknow2, data = week1)
@@ -95,7 +95,7 @@ library(sjPlot)
 tab_model(cprmod)
 ```
 
-# Stargazer code
+## Stargazer code
 
 ```{r}
 stargazer::stargazer(cmod, amod, cprmod, type = 'text', title = 'JP\'s Homework 1: Baron and Kenny Method')
@@ -113,3 +113,6 @@ summary(med_mod)
 mediate.diagram(med_mod, digits = 2, cex = 2, main = 'JP\'s Homework 1 Mediation Model')
 ```
 
+## Mediation Analysis Interpretation 
+
+Based on the findings, there appears to be evidence of mediation. This is evident by the c path being significant, but the inclusion of mediator then makes the association in the c' path not significant anymore. 
