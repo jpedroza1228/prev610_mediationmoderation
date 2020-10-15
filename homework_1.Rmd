@@ -54,6 +54,8 @@ scat_fun(itt, harsh3)
 scat_fun(ftcknow2, harsh3)
 ```
 
+## Annotated code to run analyses using lm()
+
 ## Estimate "c" path model for Direct Effect of ITT on Parenting Time3
 
 ```{r direct effect, echo = TRUE}
@@ -75,9 +77,9 @@ amod <- lm(ftcknow2 ~ itt, data = week1)
 summary(amod)
 lm.beta::lm.beta(amod)
 
-amod_table <- tbl_regression(amod)
+# amod_table <- tbl_regression(amod)
 
-amod_table
+# amod_table
 ```
 
 ## Estimate "c'" or "C prime", and the "b" path (CPr)
@@ -98,7 +100,7 @@ tab_model(cprmod)
 ```{r}
 stargazer::stargazer(cmod, amod, cprmod, type = 'text', title = 'JP\'s Homework 1: Baron and Kenny Method')
 
-# stargazer::stargazer(cmod, amod, cprmod, type = 'text', title = 'JP\'s Homework 1: Baron and Kenny Method', out = 'hw1.htm')
+# stargazer::stargazer(cmod, amod, cprmod, type = 'html', title = 'JP\'s Homework 1: Baron and Kenny Method', out = 'hw1.htm')
 ```
 
 ## Psych Mediation Code
