@@ -1,0 +1,37 @@
+---
+title: "Week 3"
+author: "JP"
+date: "10/15/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data load and packages}
+library(tidyverse)
+library(lavaan)
+library(semPlot)
+library(semTools)
+library(psych)
+library(mice)
+library(miceadds)
+
+week1 <- read_csv('https://raw.githubusercontent.com/jpedroza1228/prev610_mediationmoderation/main/data/ftc_week1.csv') %>% 
+  janitor::clean_names()
+
+names(week1)
+```
+
+```{r}
+psych::mediate(pos3 ~ itt + ftcknow2, data = week1)
+
+# install.packages('MBESS')
+MBESS::mediation(week1$itt, week1$ftcknow2, week1$pos3,
+                 bootstrap = TRUE,
+                 B = 500,
+                 conf.level = .95,
+                 complete.set = FALSE)
+```
+
