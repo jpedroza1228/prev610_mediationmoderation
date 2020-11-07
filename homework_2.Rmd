@@ -1031,8 +1031,6 @@ par(mfrow=c(1,1)) ##make the plot window one plot per page
 md.pattern(med_sem_data)
 ```
 
-See `mcar_test_functions.R` for code to run TestMCARNormality() on [github](https://github.com/jpedroza1228/prev610_mediationmoderation/blob/main/mcar_test_functions.R). 
-
 ```{r}
 # You can use this method for addressing missingness
 TestMCARNormality(med_sem_data)
