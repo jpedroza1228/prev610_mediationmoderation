@@ -1,0 +1,95 @@
+---
+title: "Homework 3_4"
+author: "JP"
+date: "11/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Homework 3
+
+```{r load in data}
+
+library(tidyverse)
+library(lavaan)
+library(lavaanPlot)
+library(psych)
+
+hw <- rio::import(here::here('data', 'hw4_achievement.csv'),
+                  setclass = 'tbl_df') %>% 
+  janitor::clean_names()
+
+names(hw)
+
+str(hw)
+
+```
+
+```{r modeling}
+psych::describe(hw2, na.rm = TRUE)
+
+hw2 <- hw %>% 
+  mutate(efficacy_z = scale(efficacy, center = TRUE, scale = TRUE),
+         bullying_z = scale(bullying, center = TRUE, scale = TRUE),
+         eff_x_bull = efficacy_z*bullying_z,
+         high_bully = bullying_z - 1,
+         low_bully = bullying_z + 1)
+
+model <- lm(achieve_t ~ efficacy_z*bullying_z + girl, data = hw2)
+summary(model)
+
+high <- lm(achieve_t ~ efficacy_z*high_bully + girl, data = hw2)
+summary(high)
+
+low <- lm(achieve_t ~ efficacy_z*low_bully + girl, data = hw2)
+summary(low)
+
+lav_mod <- '
+# regression
+achieve_t ~ efficacy_z + bullying_z + eff_x_bull + girl
+'
+
+lav_fit <- sem(lav_mod, data = hw2, missing = 'fiml.x')
+summary(lav_fit, standardized = TRUE)
+
+
+low_eff <- low[['coefficients']]['efficacy_z']
+avg_eff <- model[['coefficients']]['efficacy_z']
+high_eff <- high[['coefficients']]['efficacy_z']
+
+hw2 %>% 
+  ggplot(aes(efficacy_z, achieve_t)) +
+  geom_point(alpha = .8, color = 'powderblue') +
+  geom_abline(aes(linetype = 'Low', slope = low_eff, intercept = 66.40), size = 1) +
+  geom_abline(aes(linetype = 'Average', slope = avg_eff, intercept = 63.02), size = 1) +
+  geom_abline(aes(linetype = 'High', slope = high_eff, intercept = 59.64), size = 1) +
+  xlim(-2, 2) +
+  theme_minimal()
+
+```
+
+
+```{r plotting}
+# install.packages(c('rockchalk', 'probemod'))
+# install.packages('interactions', 'sandwich')
+
+library(probemod)
+
+interactions::probe_interaction(model = model, pred = efficacy_z, modx = bullying_z)
+
+jnresults <- jn(model, dv = 'achieve_t', iv = 'efficacy_z', mod = 'bullying_z', alpha = .05)
+
+jnresults
+plot(jnresults)
+
+```
+
+My hypothesis is:
+
+Higher levels of school bullying will moderate the impact of self-efficacy on achievement. Such that, higher levels of bullying will erode the beneficial effect of efficacy on achievement. 
+
+Answer: 
+
