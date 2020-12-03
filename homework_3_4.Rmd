@@ -2,7 +2,9 @@
 title: "Homework 3_4"
 author: "JP"
 date: "11/12/2020"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -29,45 +31,46 @@ str(hw)
 ```
 
 ```{r modeling}
-psych::describe(hw2, na.rm = TRUE)
+psych::describe(hw, na.rm = TRUE)
 
 hw2 <- hw %>% 
   mutate(efficacy_z = scale(efficacy, center = TRUE, scale = TRUE),
          bullying_z = scale(bullying, center = TRUE, scale = TRUE),
          eff_x_bull = efficacy_z*bullying_z,
-         high_bully = bullying_z - 1,
-         low_bully = bullying_z + 1)
+         bully_minus = bullying_z - 1,
+         bully_plus = bullying_z + 1)
 
 model <- lm(achieve_t ~ efficacy_z*bullying_z + girl, data = hw2)
 summary(model)
 
-high <- lm(achieve_t ~ efficacy_z*high_bully + girl, data = hw2)
-summary(high)
+minus <- lm(achieve_t ~ efficacy_z*bully_minus + girl, data = hw2)
+summary(minus)
 
-low <- lm(achieve_t ~ efficacy_z*low_bully + girl, data = hw2)
-summary(low)
+plus <- lm(achieve_t ~ efficacy_z*bully_plus + girl, data = hw2)
+summary(plus)
+
 
 lav_mod <- '
 # regression
 achieve_t ~ efficacy_z + bullying_z + eff_x_bull + girl
 '
 
-lav_fit <- sem(lav_mod, data = hw2, missing = 'fiml.x')
+lav_fit <- sem(lav_mod, data = hw2)
 summary(lav_fit, standardized = TRUE)
 
 
-low_eff <- low[['coefficients']]['efficacy_z']
-avg_eff <- model[['coefficients']]['efficacy_z']
-high_eff <- high[['coefficients']]['efficacy_z']
+# minus_eff <- minus[['coefficients']]['efficacy_z']
+# avg_eff <- model[['coefficients']]['efficacy_z']
+# plus_eff <- plus[['coefficients']]['efficacy_z']
 
-hw2 %>% 
-  ggplot(aes(efficacy_z, achieve_t)) +
-  geom_point(alpha = .8, color = 'powderblue') +
-  geom_abline(aes(linetype = 'Low', slope = low_eff, intercept = 66.40), size = 1) +
-  geom_abline(aes(linetype = 'Average', slope = avg_eff, intercept = 63.02), size = 1) +
-  geom_abline(aes(linetype = 'High', slope = high_eff, intercept = 59.64), size = 1) +
-  xlim(-2, 2) +
-  theme_minimal()
+# hw2 %>% 
+#   ggplot(aes(efficacy_z, achieve_t)) +
+#   geom_point(alpha = .8, color = 'powderblue') +
+#   geom_abline(aes(linetype = '+ 1 SD', slope = minus_eff, intercept = 59.64), size = 1) +
+#   geom_abline(aes(linetype = 'Average', slope = avg_eff, intercept = 63.02), size = 1) +
+#   geom_abline(aes(linetype = '- 1 SD', slope = plus_eff, intercept = 66.40), size = 1) +
+#   xlim(-2, 2) + 
+#   theme_minimal()
 
 ```
 
@@ -79,6 +82,7 @@ hw2 %>%
 library(probemod)
 
 interactions::probe_interaction(model = model, pred = efficacy_z, modx = bullying_z)
+
 
 jnresults <- jn(model, dv = 'achieve_t', iv = 'efficacy_z', mod = 'bullying_z', alpha = .05)
 
@@ -92,4 +96,6 @@ My hypothesis is:
 Higher levels of school bullying will moderate the impact of self-efficacy on achievement. Such that, higher levels of bullying will erode the beneficial effect of efficacy on achievement. 
 
 Answer: 
+
+The hypothesis was supported as bullying moderated the association between efficacy and achievement (b = -1.87, p < .001). The simple slopes showed that at all levels of bullying, the association between efficacy and achievement was significant. At high levels of bullying (-1 SD), self-efficacy was significantly associated with achievement (b = 5.02, p < .01). At low levels of bullying (+1 SD), self-efficacy was significantly associated with achievement (p < .001). The association was strongest for those that had lower levels of bullying. The regions of significance was within a lower bound of (6.66e-16, 2.02) and an upper bound of (-3.97, 2.20e-16). 
 
