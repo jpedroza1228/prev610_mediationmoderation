@@ -2,32 +2,27 @@
 title: "Homework 3_4"
 author: "JP"
 date: "11/12/2020"
-output:
-  word_document: default
-  html_document: default
+output: 
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-# Homework 3
+## Loading Data
 
 ```{r load in data}
-
 library(tidyverse)
 library(lavaan)
 library(lavaanPlot)
-library(psych)
 
 hw <- rio::import(here::here('data', 'hw4_achievement.csv'),
                   setclass = 'tbl_df') %>% 
   janitor::clean_names()
-
-names(hw)
-
-str(hw)
-
 ```
 
 ```{r modeling}
@@ -49,7 +44,6 @@ summary(minus)
 plus <- lm(achieve_t ~ efficacy_z*bully_plus + girl, data = hw2)
 summary(plus)
 
-
 lav_mod <- '
 # regression
 achieve_t ~ efficacy_z + bullying_z + eff_x_bull + girl
@@ -59,26 +53,28 @@ lav_fit <- sem(lav_mod, data = hw2)
 summary(lav_fit, standardized = TRUE)
 
 
-# minus_eff <- minus[['coefficients']]['efficacy_z']
-# avg_eff <- model[['coefficients']]['efficacy_z']
-# plus_eff <- plus[['coefficients']]['efficacy_z']
-
-# hw2 %>% 
-#   ggplot(aes(efficacy_z, achieve_t)) +
-#   geom_point(alpha = .8, color = 'powderblue') +
-#   geom_abline(aes(linetype = '+ 1 SD', slope = minus_eff, intercept = 59.64), size = 1) +
-#   geom_abline(aes(linetype = 'Average', slope = avg_eff, intercept = 63.02), size = 1) +
-#   geom_abline(aes(linetype = '- 1 SD', slope = plus_eff, intercept = 66.40), size = 1) +
-#   xlim(-2, 2) + 
-#   theme_minimal()
+hw2 %>%
+  ggplot(aes(efficacy_z, achieve_t)) +
+  geom_point(color = 'dodgerblue') +
+  geom_abline(aes(linetype = '+ 1 SD',
+                  slope = minus$coefficients['efficacy_z'],
+                  intercept = minus$coefficients['(Intercept)']),
+              size = 1) +
+  geom_abline(aes(linetype = 'Average',
+                  slope = model$coefficients['efficacy_z'],
+                  intercept = model$coefficients['(Intercept)']),
+              size = 1) +
+  geom_abline(aes(linetype = '- 1 SD',
+                  slope = plus$coefficients['efficacy_z'],
+                  intercept = plus$coefficients['(Intercept)']),
+              size = 1) +
+  xlim(-2, 2)
 
 ```
 
+## Plotting Interaction
 
 ```{r plotting}
-# install.packages(c('rockchalk', 'probemod'))
-# install.packages('interactions', 'sandwich')
-
 library(probemod)
 
 interactions::probe_interaction(model = model, pred = efficacy_z, modx = bullying_z)
@@ -90,6 +86,8 @@ jnresults
 plot(jnresults)
 
 ```
+
+## Answers
 
 My hypothesis is:
 

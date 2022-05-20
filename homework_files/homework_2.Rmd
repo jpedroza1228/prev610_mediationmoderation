@@ -2,17 +2,18 @@
 title: "Homework 2"
 author: "JP"
 date: "10/25/2020"
-output:
-  word_document: default
-  html_document: default
+output: 
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 ```{r prior functions, echo = FALSE, eval = TRUE}
-
 mcar <- function(x){ 
   if(!require(norm)) {
     stop("You must have norm installed to use LittleMCAR") 
@@ -121,58 +122,71 @@ mcar <- function(x){
 
 ```
 
-
-# Homework 1
+## Loading Data
 
 ```{r loading data}
-
 library(tidyverse)
 library(lavaan)
 library(lavaanPlot)
 library(semPlot)
 library(MVN)
 
-theme_set(theme_minimal())
+theme_set(theme_light())
 
-data <- read_csv('https://raw.githubusercontent.com/jpedroza1228/prev610_mediationmoderation/1d96144fd9936f4a33ef9c8cf5431de32d5e3572/data/homework2.csv') %>% 
+data <- 
+  read_csv('https://raw.githubusercontent.com/jpedroza1228/prev610_mediationmoderation/1d96144fd9936f4a33ef9c8cf5431de32d5e3572/data/homework2.csv') %>% 
   janitor::clean_names()
 
-
-# This also works if you followed Dave's resource on creating a R project.
-
-# data <- rio::import(here::here('data', 'homoework2.csv')) %>% 
-# janitor::clean_names()
+med_sem_data <- 
+  data %>% 
+  select(cage1,
+         income1,
+         educ1,
+         ftcknow2,
+         harsh3,
+         incons3,
+         pos3,
+         ecbin3t,
+         ecbprb3t,
+         sdqpro3)
 ```
 
-
-```{r subsetted data}
-
-med_sem_data <- data %>% 
-  select(cage1,income1,educ1,ftcknow2,harsh3,incons3,pos3,
-  ecbin3t,ecbprb3t,sdqpro3)
-
-```
+## Descriptive Statistics
 
 ```{r descriptives}
 # create univariate histograms
 
-mvn(data = med_sem_data, mvnTest = "mardia", univariateTest = "AD")
+mvn(data = med_sem_data,
+    mvnTest = "mardia",
+    univariateTest = "AD")$multivariateNormality
 
-hist_fun <- function(data, x){
-  ggplot({{data}}, aes({{x}})) +
-    geom_histogram(bins = 15, color = 'white',
+mvn(data = med_sem_data,
+    mvnTest = "mardia",
+    univariateTest = "AD")$univariateNormality
+
+hist_fun <- 
+  function(data, x){
+  ggplot({{data}},
+         aes({{x}})) +
+    geom_histogram(bins = 15,
+                   color = 'white',
                    fill = 'dodgerblue')
 }
 
 hist_fun(med_sem_data, cage1)
 
-names_col <- c('cage1','income1','educ1','ftcknow2',
+names_col <- 
+  c('cage1','income1','educ1','ftcknow2',
                'harsh3','incons3','pos3',
                'ecbin3t','ecbprb3t','sdqpro3')
 
-map2(med_sem_data, names_col, ~hist_fun(med_sem_data, .x) +
+map2(med_sem_data,
+     names_col,
+     ~hist_fun(med_sem_data, .x) +
       labs(title = glue::glue('Variable: {.y}'))) 
 ```
+
+## Examining Missingness
 
 ```{r missingness}
 library(mice)
@@ -185,12 +199,17 @@ par(mfrow=c(1,1)) ##make the plot window one plot per page
 
 
 md.pattern(med_sem_data)
+
+set.seed(574328495)
+
+# You can use this method for addressing missingness
+mcar(med_sem_data)$chi.square
+mcar(med_sem_data)$p.value
+mcar(med_sem_data)$missing.patterns
+mcar(med_sem_data)$amount.missing
 ```
 
-```{r}
-# You can use this method for addressing missingness
-mcar(med_sem_data)
-```
+## FIML Model
 
 ```{r fiml model}
 set.seed(574328495) # This is so that the following code will always be the same. Think of this as a save point for your estimates and confidence intervals.
@@ -241,6 +260,8 @@ lavaanPlot(model = hw_fit_1, stand = TRUE,
 
 ```
 
+## Bootstrapping
+
 ```{r boots}
 set.seed(574328495)
 hw_fit_boot <- sem(model = hw_fit_1, data = data,
@@ -252,36 +273,8 @@ summary(hw_fit_boot, standardized = TRUE)
 parameterestimates(hw_fit_1)[39:43,]
 ```
 
-
 ## Answers
 
-From the model with robust standard errors, it appears that the path from itt to ftcknow2 to pos3 had an indirect effect on child_prob (**p** = .004, 95%CI [-.96, -.19]). From the bootstrapped model, the same path (itt to ftcknow2 to pos3) had a significant indirect effect on child_prob (**p** = .004, 95%CI [-.96, -.19])
+From the model with robust standard errors, it appears that the path from `itt` to `ftcknow2` to `pos3` had an indirect effect on child_prob (**p** = .004, 95% CI [-.96, -.19]). From the bootstrapped model, the same path (`itt` to `ftcknow2` to `pos3`) had a significant indirect effect on child_prob (**p** = .004, 95%CI [-.96, -.19])
 
-Education was the only significant control variable (\beta = .16, **p** = .049). Being so close to the threshold of .50, I would be cautious when interpreting this finding of increased education being associated with more child problems. In the bootstrapped model, the association is no longer significant (\beta = .16, **p** = .057). 
-
-
-```{r multiple imputed model}
-
-# set.seed(574328495)
-# hw_fit_1_mi <- semTools::sem.mi(hw_model_1,
-#                 data = data,
-#                 m = 5,
-#                 miPackage = 'mice')
-
-# summary(hw_fit_1_mi, standardized = TRUE)
-
-
-
-# d2 <- fitmeasures(hw_fit_1_mi)[c('aic', 'bic',
-#                                  'cfi', 'cfi.robust',
-#                                  'rmsea', 'rmsea.ci.lower', 'rmsea.ci.upper',
-#                                  'rmsea.scaled', 'rmsea.ci.lower.scaled', 'rmsea.ci.upper.scaled',
-#                                  'rmsea.robust', 'rmsea.ci.lower.robust', 'rmsea.ci.upper.robust',
-#                                  'srmr')]
-
-# data.frame(d1, d2)
-
-```
-
-
-
+Education was the only significant control variable ($\beta$ = .16, **p** = .049). Being so close to the threshold of .50, I would be cautious when interpreting this finding of increased education being associated with more child problems. In the bootstrapped model, the association is no longer significant ($\beta$ = .16, **p** = .057). 

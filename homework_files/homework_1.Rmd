@@ -1,14 +1,18 @@
 ---
 title: "PREV 610 Homework 1"
-author: "JP"
+author: "Jonathan A. Pedroza (JP)"
 date: "10/10/2020"
 output: 
   html_document:
-    theme: paper
+    theme: flatly
+    toc: true
+    toc_float: true
+    
+    
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 # Homework 1
@@ -22,8 +26,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r data loading, echo = FALSE}
 library(tidyverse)
 library(psych)
+library(gt)
+library(gtsummary)
+library(sjPlot)
 
-theme_set(theme_minimal())
+theme_set(theme_light())
 
 week1 <- read_csv('https://raw.githubusercontent.com/jpedroza1228/prev610_mediationmoderation/main/data/ftc_week1.csv') %>% 
   janitor::clean_names()
@@ -32,21 +39,22 @@ week1 <- read_csv('https://raw.githubusercontent.com/jpedroza1228/prev610_mediat
 ## Descriptives
 
 ```{r descriptives, echo = TRUE}
-hist_fun <- function(x){
-  week1 %>% 
-    ggplot(aes({{x}})) +
-    geom_histogram(bins = 15, color = 'white', fill = 'dodgerblue')
-}
+week1 %>% 
+  mutate_if(is.double, as.numeric) %>% 
+  select_if(is.numeric) %>% 
+  map(~ggplot(data = week1,
+              aes(.x)) + 
+        geom_histogram(bins = 15,
+                       color = 'white',
+                       fill = 'dodgerblue')
+      )
 
-hist_fun(itt)
-hist_fun(ftcknow2)
-hist_fun(harsh3)
-
-scat_fun <- function(x, y){
+scat_fun <- function(x, y, se = FALSE){
   week1 %>% 
     ggplot(aes({{x}}, {{y}})) +
-    geom_point(alpha = .3, color = 'gray70') +
-    geom_smooth(method = 'lm', se = FALSE)
+    geom_point(alpha = .5) +
+    geom_smooth(method = 'lm',
+                    se = {{se}})
 }
 
 scat_fun(itt, ftcknow2)
@@ -54,7 +62,7 @@ scat_fun(itt, harsh3)
 scat_fun(ftcknow2, harsh3)
 ```
 
-## Annotated code to run analyses using lm() (Task 2)
+## Annotated code to run analyses using `lm()` (Task 2)
 
 ### Estimate "c" path model for Direct Effect of ITT on Parenting Time3
 
@@ -62,12 +70,6 @@ scat_fun(ftcknow2, harsh3)
 cmod <- lm(harsh3 ~ itt, data = week1)
 summary(cmod)
 lm.beta::lm.beta(cmod)
-
-# install.packages(c('gt', 'gtsummary'))
-library(gt)
-library(gtsummary)
-# install.packages('sjPlot')
-
 ```
 
 ### Estimate "a" path Effect of ITT to Mediator 
@@ -76,10 +78,6 @@ library(gtsummary)
 amod <- lm(ftcknow2 ~ itt, data = week1)
 summary(amod)
 lm.beta::lm.beta(amod)
-
-# amod_table <- tbl_regression(amod)
-
-# amod_table
 ```
 
 ### Estimate "c'" or "C prime", and the "b" path (CPr)
@@ -90,8 +88,6 @@ summary(cprmod)
 cprmod_z <- lm.beta::lm.beta(cprmod)
 
 round(cprmod_z$coefficients, digits = 2)
-
-library(sjPlot)
 tab_model(cprmod)
 ```
 
@@ -99,8 +95,6 @@ tab_model(cprmod)
 
 ```{r}
 stargazer::stargazer(cmod, amod, cprmod, type = 'text', title = 'JP\'s Homework 1: Baron and Kenny Method')
-
-# stargazer::stargazer(cmod, amod, cprmod, type = 'html', title = 'JP\'s Homework 1: Baron and Kenny Method', out = 'hw1.htm')
 ```
 
 ## Psych Mediation Code
@@ -108,7 +102,6 @@ stargazer::stargazer(cmod, amod, cprmod, type = 'text', title = 'JP\'s Homework 
 ```{r}
 med_mod <- mediate(harsh3 ~ itt + ftcknow2, data = week1, std = TRUE, plot = TRUE)
 summary(med_mod)
-
 
 mediate.diagram(med_mod, digits = 2, cex = 2, main = 'JP\'s Homework 1 Mediation Model')
 ```
